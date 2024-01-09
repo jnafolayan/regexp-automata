@@ -39,4 +39,6 @@ O
    t
 
 
-aa(s|t)
+aa(s|t)*
+
+a -> gg
