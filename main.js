@@ -1,167 +1,58 @@
-const EPSILON = "ϵ";
+window.onload = function() {
+  const input = document.getElementById("regex");
+  const parseButton = document.getElementById("parseBtn");
 
-const nfa = {
-  states: {},
-};
+  parseButton.addEventListener("click", (e) => {
+    const start = convertRegexToNFA(input.value);
 
-parse("b*")
+    const g = new dagreD3.graphlib.Graph()
+    .setGraph({ rankdir: 'LR' })
+    .setDefaultEdgeLabel(() => {});
 
-function parse(regex) {
-  const [finalState, _i] = parseExpression(regex, 0, "", createState());
+    const nodes = getNodes(start);
 
-  const start = findStartFromFinal(finalState);
-
-  labelStates(start);
-  print(start);
-}
-
-function parseExpression(regex, i = 0, stopCharacter = "", prevState = null) {
-  while (i < regex.length) 
-  {
-    if (regex[i] === stopCharacter) 
-    {
-      break;
-    }
-    else if (regex[i] == "(") 
-    {
-      // We're entering a group. Parse it and add a transition from prev.
-      const [groupExit, endIndex] = parseExpression(regex, i + 1, ")", prevState);
-      groupExit.prev = prevState;
-      prevState = groupExit;
-      i = endIndex;
-    } 
-    else if (isLetter(regex[i])) 
-    {
-      const endState = createState();
-      endState.prev = prevState;
-      prevState != null && addTransition(prevState, regex[i], endState);
-      prevState = endState;
-    }
-    else if (isQuantifier(regex[i]))
-    {
-      assert(prevState != null, "No sequence to quantify");
-
-      const entry = createState();
-      const exit = createState();
-      exit.prev = entry;
-      
-      switch (regex[i]) {
-        case "*":
-          fixBacktrackLinks(prevState.prev, entry);
-          addTransition(entry, EPSILON, prevState.prev);
-
-          addTransition(entry, EPSILON, exit);
-
-          addTransition(prevState, EPSILON, exit);
-          addTransition(prevState, EPSILON, prevState.prev);
-
-          break;
-
-        default:
-          throw new Error("Unimplemented quantifier: " + regex[i]);
-      } 
-      
-      prevState = exit;
-    }
-    else
-    {
-      throw new Error("Unknown symbol: " + regex[i]);
-    }
-
-    i++;
-  }
-
-  return [prevState, i];
-}
-
-function assert(cond, message) {
-  if (!cond) 
-  {
-    throw new Error(message);
-  }
-}
-
-function createState(label = "") {
-  return {
-    label,
-    transitions: [],
-    backtracks: [],
-    prev: null,
-  };
-}
-
-function addTransition(state, input, end) {
-  const t = createTransition(state, input, end);
-  const reverseT = createTransition(end, input, state);
-  state.transitions.push(t);
-  end.backtracks.push(reverseT);
-  return t;
-}
-
-function createTransition(_start, input, end) {
-  return { input, end };
-}
-
-function fixBacktrackLinks(oldState, newState) {
-  let backtracks = oldState.backtracks;
-  oldState.backtracks = [];
-
-  backtracks.forEach(t => {
-    const { end, input } = t;
-    end.transitions = end.transitions.filter(tt => tt !== oldState);
-    addTransition(end, input, newState);
-  });
-}
-
-// util
-function isLetter(char) {
-  return /[a-z]/i.test(char);
-}
-
-function isQuantifier(char) {
-  return ["*"].includes(char);
-}
-
-function findStartFromFinal(final) {
-  const states = [final];
-  const checked = new Set();
-
-  while (states.length) {
-    const s = states.shift();
-    if (checked.has(s)) continue;
-    checked.add(s);
-
-    if (s.backtracks.length === 0) return s;
-    states.push(...s.backtracks.map(t => t.end));
-  }
-
-  return null;
-}
-
-function labelStates(state) {
-  let i = 0;
-  const states = [state];
-  const checked = new Set();
-  while (states.length) {
-    const s = states.pop();
-    if (checked.has(s)) continue;
-    checked.add(s);
-    s.label = i++;
-    states.push(...s.transitions.map(t => t.end));
-  }
-}
-
-function print(state) {
-  const states = [state];
-  const checked = new Set();
-
-  while (states.length) {
-    const s = states.shift();
-    if (checked.has(s)) continue;
-    checked.add(s);
-    s.transitions.forEach(t => {
-      console.log(`${s.label} --${t.input}-- ${t.end.label}`);
+    nodes.forEach(node => {
+      g.setNode(node.id, {
+        label: node.label,
+        shape: "circle"
+      });
     });
-    states.push(...s.transitions.map(t => t.end));
-  }
-}
+
+    nodes.forEach(node => {
+      node.transitions.forEach(({ end, input }) => {
+        g.setEdge(node.id, end.id, { label: input, curve: d3.curveBasis });
+      });
+    });
+
+    const render = new dagreD3.render();
+
+    const board = d3.select("#board");
+    board.html("");
+
+    const { width, height } = board.node().getBoundingClientRect();
+
+    // Set up an SVG group so that we can translate the final graph.
+    const svg = board.append("svg");
+    svg.attr("width", width);
+    svg.attr("height", height);
+
+    const svgGroup = svg.append("g"),
+    zoom = d3.zoom().on("zoom", () => {
+      svgGroup.attr("transform", d3.event.transform);
+    });
+    svg.call(zoom);
+
+    // Run the renderer. This is what draws the final graph.
+    render(svgGroup, g);
+
+    // Center the graph
+    const initialScale = 0.75;
+    svg.call(
+      zoom.transform, 
+      d3.zoomIdentity
+        .translate(
+          (svg.attr("width") - g.graph().width * initialScale) / 2,
+          (svg.attr("height") - g.graph().height * initialScale) / 2)
+        .scale(initialScale));
+  });
+};
