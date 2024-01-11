@@ -6,6 +6,9 @@ function convertRegexToNFA(regex) {
   const start = findStartFromFinal(finalState);
   labelStates(start);
 
+  start._isStart = true;
+  finalState._isFinal = true;
+
   const nodes = getNodes(start);
   return [nodes, getTransitions(nodes), start];
 }

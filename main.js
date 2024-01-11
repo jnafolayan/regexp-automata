@@ -31,7 +31,7 @@ window.onload = function () {
     nodes.forEach((node) => {
       g.setNode(node.id, {
         label: node.label,
-        shape: "circle",
+        shape: node._isStart || node._isFinal ? "dblcircle" : "circle",
       });
     });
 
@@ -40,6 +40,36 @@ window.onload = function () {
     });
 
     const render = new dagreD3.render();
+
+    render.shapes().dblcircle = (parent, bbox, node) => {
+      const r = Math.min(bbox.width / 2, bbox.height / 2);
+      const circle = {
+        x: bbox.width / 2,
+        y: bbox.height / 2,
+        r,
+      };
+
+      parent
+        .insert("circle", ":first-child")
+        .attr("x", circle.x)
+        .attr("y", circle.y)
+        .attr("r", circle.r * .8);
+
+      const shapeSvg = parent
+        .insert("circle", ":first-child")
+        .attr("x", circle.x)
+        .attr("y", circle.y)
+        .attr("r", circle.r);
+
+    
+      // .attr("transform", "translate(" + (-w/2) + "," + (h * 3/4) + ")");
+
+      node.intersect = function (point) {
+        return dagreD3.intersect.circle(node, r, point);
+      };
+
+      return shapeSvg;
+    };
 
     const board = d3.select("#board");
     const { width, height } = board.node().getBoundingClientRect();

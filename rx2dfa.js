@@ -67,6 +67,17 @@ function convertRegexToDFA(regex) {
     });
   }
 
+  if (exploredDFAStates.length) {
+    exploredDFAStates[0]._isStart = true;
+
+    const nfaFinalState = nodes.find(node => node._isFinal);
+    for (const state of exploredDFAStates) {
+      if (state.states.includes(nfaFinalState.label)) {
+        state._isFinal = true;
+      }
+    }
+  }
+
   return [
     exploredDFAStates,
     dfaTransitions,
@@ -80,7 +91,6 @@ function createDFAState(label, nfaStates) {
     label,
     id: label,
     states: nfaStates,
-    _joined: nfaStates.join("_"),
   };
 }
 
