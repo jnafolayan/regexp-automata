@@ -11,7 +11,12 @@ window.onload = function () {
   if (r != null) {
     input.value = r;
     otherLink.href = otherLink.href + "?" + search.toString();
-    kickoff(r);
+    try {
+      kickoff(r);
+    } catch (e) {
+      alert("Error parsing your regular expression! Check the console for errors pls :(");
+      console.error(e);
+    }
   }
 
   parseButton.addEventListener("click", () => {
