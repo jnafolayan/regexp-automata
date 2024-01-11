@@ -48,7 +48,7 @@ window.onload = function () {
 
     g.setEdge("START", start.id, { label: "start" });
 
-    transitions.reverse().forEach(({ from, to, input }) => {
+    transitions.forEach(({ from, to, input }) => {
       g.setEdge(from, to, { label: input, curve: d3.curveBasis });
     });
 

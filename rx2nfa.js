@@ -68,20 +68,20 @@ function parseExpression(regex, i = 0, stopCharacter = "", prevState = null) {
       const exit = createState();
       exit.prev = entry;
 
-      const lhsEntry = findStartFromFinal(prevState);
-      const lhsExit = prevState;
-      addTransition(entry, EPSILON, lhsEntry);
-      addTransition(lhsExit, EPSILON, exit);
+      const rhsEntry = findStartFromFinal(prevState);
+      const rhsExit = prevState;
+      addTransition(entry, EPSILON, rhsEntry);
+      addTransition(rhsExit, EPSILON, exit);
 
-      const [rhsExit, endIndex] = parseExpression(
+      const [lhsExit, endIndex] = parseExpression(
         regex,
         i + 1,
         stopCharacter,
         createState()
       );
-      const rhsEntry = findStartFromFinal(rhsExit);
-      addTransition(entry, EPSILON, rhsEntry);
-      addTransition(rhsExit, EPSILON, exit);
+      const lhsEntry = findStartFromFinal(lhsExit);
+      addTransition(entry, EPSILON, lhsEntry);
+      addTransition(lhsExit, EPSILON, exit);
 
       i = endIndex;
       prevState = exit;
@@ -198,7 +198,7 @@ function topoSortUtil(node, stack, visited) {
 
   visited.add(node);
 
-  for (const { end: adj } of node.transitions.reverse()) {
+  for (const { end: adj } of node.transitions) {
     topoSortUtil(adj, stack, visited);
   }
 
