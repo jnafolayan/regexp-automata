@@ -31,7 +31,7 @@ window.onload = function () {
     nodes.forEach((node) => {
       g.setNode(node.id, {
         label: node.label,
-        shape: node._isStart || node._isFinal ? "dblcircle" : "circle",
+        shape: node._isFinal ? "dblcircle" : "circle",
       });
     });
 
