@@ -20,7 +20,7 @@ window.onload = function () {
   });
 
   function kickoff(regex) {
-    const [nodes, transitions, _start, other] = isToDFA
+    const [nodes, transitions, start, other] = isToDFA
       ? convertRegexToDFA(regex)
       : convertRegexToNFA(regex);
 
@@ -28,12 +28,20 @@ window.onload = function () {
       .setGraph({ rankdir: "LR" })
       .setDefaultEdgeLabel(() => {});
 
+    g.setNode("START", {
+      label: "",
+      shape: "circle",
+      style: 'stroke: none'
+    });
+
     nodes.forEach((node) => {
       g.setNode(node.id, {
         label: node.label,
         shape: node._isFinal ? "dblcircle" : "circle",
       });
     });
+
+    g.setEdge("START", start.id, { label: "start" });
 
     transitions.forEach(({ from, to, input }) => {
       g.setEdge(from, to, { label: input, curve: d3.curveBasis });
@@ -53,7 +61,7 @@ window.onload = function () {
         .insert("circle", ":first-child")
         .attr("x", circle.x)
         .attr("y", circle.y)
-        .attr("r", circle.r * .8);
+        .attr("r", circle.r * 0.8);
 
       const shapeSvg = parent
         .insert("circle", ":first-child")
@@ -61,7 +69,6 @@ window.onload = function () {
         .attr("y", circle.y)
         .attr("r", circle.r);
 
-    
       // .attr("transform", "translate(" + (-w/2) + "," + (h * 3/4) + ")");
 
       node.intersect = function (point) {

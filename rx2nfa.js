@@ -2,6 +2,7 @@ const EPSILON = "ϵ";
 let _stateID = 0;
 
 function convertRegexToNFA(regex) {
+  console.log({regex })
   const [finalState, _i] = parseExpression(regex, 0, "", createState());
   const start = findStartFromFinal(finalState);
   labelStates(start);
