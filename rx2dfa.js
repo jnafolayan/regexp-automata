@@ -119,9 +119,7 @@ function transitionFn(nodesMap, state, symbol) {
 }
 
 function extractUniqueSymbols(string) {
-  const symbols = string.match(/[a-z0-9]/gi);
-  const uniq = Array.from(new Set(symbols));
-  return uniq;
+  return uniqArray(string.match(/[a-z0-9 ]/gi));
 }
 
 function getClosure(nodes, state) {

@@ -2,7 +2,6 @@ const EPSILON = "ϵ";
 let _stateID = 0;
 
 function convertRegexToNFA(regex) {
-  console.log({regex })
   const [finalState, _i] = parseExpression(regex, 0, "", createState());
   const start = findStartFromFinal(finalState);
   labelStates(start);
@@ -166,7 +165,7 @@ function findStartFromFinal(final) {
 }
 
 function isAlphanum(char) {
-  return /[a-z0-9]/i.test(char);
+  return /[a-z0-9 ]/i.test(char);
 }
 
 function isQuantifier(char) {
