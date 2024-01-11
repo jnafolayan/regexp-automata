@@ -7,12 +7,21 @@ function convertRegexToDFA(regex) {
     return obj;
   }, {});
 
+  // Helper function to memoize closures
+  const knownClosures = {};
+  function getClosureWrap(nodes, state) {
+    if (!knownClosures[state]) {
+      knownClosures[state] = getClosure(nodes, state);
+    }
+    return knownClosures[state];
+  }
+
   let stateLabelID = 0;
   const dfaStateReports = {};
   const dfaStatesToExplore = [
     createDFAState(
       getDFAStateLabel(stateLabelID++),
-      getClosure(nodesMap, start.label)
+      getClosureWrap(nodesMap, start.label)
     ),
   ];
   const exploredDFAStates = [];
@@ -32,19 +41,19 @@ function convertRegexToDFA(regex) {
 
       // Compute E-closure(move)
       const closure = sortStates(
-        move.flatMap((state) => getClosure(nodesMap, state))
+        uniqArray(move.flatMap((state) => getClosureWrap(nodesMap, state)))
       );
 
       dfaStateReports[label][symbol] = { move, closure };
 
       if (closure.length == 0) return;
+      console.log(closure);
 
       let foundDFAState = findDFAStateUsingNFAStates(
         dfaStatesToExplore.concat(exploredDFAStates),
         closure
       );
       if (foundDFAState == null) {
-        debug.log(dfaStatesToExplore, closure);
         foundDFAState = createDFAState(
           getDFAStateLabel(stateLabelID++),
           closure
@@ -130,4 +139,8 @@ function getClosure(nodes, state) {
 
 function sortStates(states) {
   return states.sort((a, b) => a - b);
+}
+
+function uniqArray(arr) {
+  return Array.from(new Set(arr));
 }
