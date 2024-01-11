@@ -198,7 +198,7 @@ function topoSortUtil(node, stack, visited) {
 
   visited.add(node);
 
-  for (const { end: adj } of node.transitions) {
+  for (const { end: adj } of node.transitions.reverse()) {
     topoSortUtil(adj, stack, visited);
   }
 
