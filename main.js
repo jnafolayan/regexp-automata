@@ -9,18 +9,21 @@ window.onload = function () {
   const search = new URLSearchParams(location.search);
   const r = search.get("r");
   if (r != null) {
-    input.value = r;
+    const regex = decodeString(r);
+    console.log(r, regex)
+    input.value = regex;
     otherLink.href = otherLink.href + "?" + search.toString();
     try {
-      kickoff(r);
+      kickoff(regex);
     } catch (e) {
-      alert("Error parsing your regular expression! Check the console for errors pls :(");
+      // alert("Error parsing your regular expression! Check the console for errors pls :(");
       console.error(e);
     }
   }
 
   parseButton.addEventListener("click", () => {
-    search.set("r", input.value);
+    console.log(encodeString(input.value))
+    search.set("r", encodeString(input.value));
     location.search = search.toString();
   });
 
