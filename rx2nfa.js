@@ -17,9 +17,6 @@ function parseExpression(regex, i = 0, stopCharacter = "", prevState = null) {
   while (i < regex.length) {
     if (regex[i] === stopCharacter) {
       break;
-    } else if (regex[i] == EPSILON) {
-      i++;
-      continue;
     } else if (regex[i] == "(") {
       // We're entering a group. Parse it and add a transition from prev.
       const [groupExit, endIndex] = parseExpression(
@@ -32,11 +29,11 @@ function parseExpression(regex, i = 0, stopCharacter = "", prevState = null) {
       groupExit.prev = prevState;
 
       fixBacktrackLinks(groupEntry, prevState);
-      transferTransitions(groupEntry, prevState);
+      transplantState(groupEntry, prevState);
       prevState = groupExit;
 
       i = endIndex;
-    } else if (isAlphanum(regex[i])) {
+    } else if (regex[i] == EPSILON || isAlphanum(regex[i])) {
       const endState = createState();
       endState.prev = prevState;
       prevState != null && addTransition(prevState, regex[i], endState);
@@ -113,9 +110,14 @@ function createState(label = "") {
     transitions: [],
     backtracks: [],
     prev: null,
+
+    // internal props
+    _isStart: false,
+    _isFinal: false,
   };
 }
 
+// Transition utils start
 function addTransition(state, input, end) {
   const t = createTransition(state, input, end);
   const reverseT = createTransition(end, input, state);
@@ -128,6 +130,17 @@ function createTransition(_start, input, end) {
   return { input, end };
 }
 
+function getTransitions(nodes) {
+  return nodes.flatMap((node) =>
+    node.transitions.map(({ end, input }) => ({
+      from: node.id,
+      to: end.id,
+      input,
+    }))
+  );
+}
+// Transition utils end
+
 function fixBacktrackLinks(oldState, newState) {
   let backtracks = oldState.backtracks;
   oldState.backtracks = [];
@@ -139,12 +152,12 @@ function fixBacktrackLinks(oldState, newState) {
   });
 }
 
-function transferTransitions(stateFrom, stateTo) {
-  const transitions = stateFrom.transitions;
-  stateFrom.transitions = [];
+function transplantState(oldState, newState) {
+  const transitions = oldState.transitions;
+  oldState.transitions = [];
   transitions.forEach(({ input, end }) => {
-    end.backtracks = end.backtracks.filter((tt) => tt.end !== stateFrom);
-    addTransition(stateTo, input, end);
+    end.backtracks = end.backtracks.filter((tt) => tt.end !== oldState);
+    addTransition(newState, input, end);
   });
 }
 
@@ -217,16 +230,6 @@ function getNodes(start) {
   }
 
   return Array.from(checked);
-}
-
-function getTransitions(nodes) {
-  return nodes.flatMap((node) =>
-    node.transitions.map(({ end, input }) => ({
-      from: node.id,
-      to: end.id,
-      input,
-    }))
-  );
 }
 
 function print(state) {
