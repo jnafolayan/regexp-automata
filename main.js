@@ -74,8 +74,6 @@ window.onload = function () {
         .attr("y", circle.y)
         .attr("r", circle.r);
 
-      // .attr("transform", "translate(" + (-w/2) + "," + (h * 3/4) + ")");
-
       node.intersect = function (point) {
         return dagreD3.intersect.circle(node, r, point);
       };
@@ -113,7 +111,8 @@ window.onload = function () {
         )
         .scale(initialScale)
     );
-
+    
+    // Display report only if we constructed a DFA
     isToDFA && showReport(nodes, other);
   }
 };
