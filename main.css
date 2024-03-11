@@ -45,6 +45,17 @@ body {
     height: 400px;
 }
 
+#shareContainer {
+    width: 100%;
+    max-width: 750px;
+    margin-top: 5px;
+}
+
+#share {
+    color: #aaa;
+    font-size: .9rem;
+}
+
 #regex {
     display: block;
     background-color: transparent;

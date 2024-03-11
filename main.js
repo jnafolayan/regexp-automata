@@ -2,6 +2,7 @@ DEBUG = true;
 
 window.onload = function () {
   const input = document.getElementById("regex");
+  const shareLink = document.getElementById("share");
   const parseButton = document.getElementById("parseBtn");
   const otherLink = document.querySelector(".other-link");
 
@@ -10,21 +11,27 @@ window.onload = function () {
   const r = search.get("r");
   if (r != null) {
     const regex = decodeString(r);
-    console.log(r, regex)
     input.value = regex;
-    otherLink.href = otherLink.href + "?" + search.toString();
+
+    otherLink.setAttribute("href", otherLink.href + "?r=" + r);
+    shareLink.innerHTML = location.href;
+
     try {
       kickoff(regex);
     } catch (e) {
-      // alert("Error parsing your regular expression! Check the console for errors pls :(");
+      alert("Error parsing your regular expression! Check the console for errors pls :(");
       console.error(e);
     }
   }
 
   parseButton.addEventListener("click", () => {
-    console.log(encodeString(input.value))
-    search.set("r", encodeString(input.value));
-    location.search = search.toString();
+    const url = new URL(location.href);
+    url.search = "r=" + encodeString(input.value);
+
+    shareLink.setAttribute("href", url.href);
+    shareLink.innerHTML = url.href;
+
+    kickoff(input.value);
   });
 
   function kickoff(regex) {
@@ -39,7 +46,7 @@ window.onload = function () {
     g.setNode("START", {
       label: "",
       shape: "circle",
-      style: 'stroke: none'
+      style: "stroke: none",
     });
 
     nodes.forEach((node) => {
@@ -114,7 +121,7 @@ window.onload = function () {
         )
         .scale(initialScale)
     );
-    
+
     // Display report only if we constructed a DFA
     isToDFA && showReport(nodes, other);
   }

@@ -13,26 +13,10 @@ function arrayToObject(arr, keyProp) {
   }, {});
 }
 
-function bytesToHex(bytes) {
-  return Array.from(
-    bytes, 
-    (byte) => byte.toString(16).padStart(2, "0")
-  ).join("");
-}
-
-function hexToBytes(hex) {
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < bytes.length; i++) {
-    const byte = parseInt(hex.substring(i*2, i*2+2), 16);
-    bytes[i] = byte;
-  }
-  return bytes;
-}
-
 function encodeString(string) {
-  return btoa(bytesToHex(new TextEncoder().encode(string)));
+  return btoa(string);
 }
 
 function decodeString(string) {
-  return new TextDecoder().decode(hexToBytes(atob(string)));
+  return atob(string);
 }
