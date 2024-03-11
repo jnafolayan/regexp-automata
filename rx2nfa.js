@@ -1,5 +1,4 @@
 const EPSILON = "ϵ";
-let _stateID = 0;
 
 function convertRegexToNFA(regex) {
   const [finalState, _i] = parseExpression(regex, 0, "", createState());
@@ -105,7 +104,7 @@ function assert(cond, message) {
 
 function createState(label = "") {
   return {
-    id: _stateID++,
+    id: createState._stateID++,
     label,
     transitions: [],
     backtracks: [],
@@ -117,7 +116,8 @@ function createState(label = "") {
   };
 }
 
-// Transition utils start
+createState._stateID = 0;
+
 function addTransition(state, input, end) {
   const t = createTransition(state, input, end);
   const reverseT = createTransition(end, input, state);
@@ -139,7 +139,6 @@ function getTransitions(nodes) {
     }))
   );
 }
-// Transition utils end
 
 function fixBacktrackLinks(oldState, newState) {
   let backtracks = oldState.backtracks;
@@ -218,7 +217,7 @@ function topoSortUtil(node, stack, visited) {
   stack.push(node);
 }
 
-function getNodes(start) {
+function graphBFS(start, onTraverse) {
   const states = [start];
   const checked = new Set();
 
@@ -227,22 +226,22 @@ function getNodes(start) {
     if (checked.has(s)) continue;
     checked.add(s);
     states.push(...s.transitions.map((t) => t.end));
+
+    onTraverse && onTraverse(s);
   }
 
   return Array.from(checked);
 }
 
-function print(state) {
-  const states = [state];
-  const checked = new Set();
+function getNodes(start) {
+  return graphBFS(start);
+}
 
-  while (states.length) {
-    const s = states.shift();
-    if (checked.has(s)) continue;
-    checked.add(s);
+function print(start) {
+  graphBFS(start, (s) => {
     s.transitions.forEach((t) => {
       console.log(`${s.label} --${t.input}-- ${t.end.label}`);
     });
     states.push(...s.transitions.map((t) => t.end));
-  }
+  });
 }
